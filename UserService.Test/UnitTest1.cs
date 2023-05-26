@@ -28,10 +28,8 @@ namespace UserService.Test
             var controller = new UserController(_loggerMock.Object, _httpClientFactoryMock.Object);
             var user = new RegisterModel
             {
-                FirstName = "Mateusz",
-                LastName = "Kubisiak",
-                Email = "mateusz@example.com",
-                Password = "password"
+                Email = "mateuszkubisiak@example.com",
+                Password = "password",
             };
 
             // Act
