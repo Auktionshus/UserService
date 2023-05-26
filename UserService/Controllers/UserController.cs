@@ -24,7 +24,9 @@ namespace UserService.Controllers
         {
             _logger = logger;
             _httpClient = clientFactory.CreateClient();
-            var client = new MongoClient("mongodb+srv://GroenOlsen:BhvQmiihJWiurl2V@auktionshusgo.yzctdhc.mongodb.net/?retryWrites=true&w=majority");
+            var client = new MongoClient(
+                "mongodb+srv://GroenOlsen:BhvQmiihJWiurl2V@auktionshusgo.yzctdhc.mongodb.net/?retryWrites=true&w=majority"
+            );
             var database = client.GetDatabase("User");
             _users = database.GetCollection<User>("Users");
         }
@@ -38,7 +40,8 @@ namespace UserService.Controllers
             if (await _users.Find<User>(x => x.Email == model.Email).FirstOrDefaultAsync() != null)
                 return BadRequest("Email \"" + model.Email + "\" is already taken");
 
-            byte[] passwordHash, passwordSalt;
+            byte[] passwordHash,
+                passwordSalt;
             CreatePasswordHash(model.Password, out passwordHash, out passwordSalt);
 
             User user = new User
@@ -85,32 +88,17 @@ namespace UserService.Controllers
             return Ok($"User with Id {id} has been deleted.");
         }
 
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+        private void CreatePasswordHash(
+            string password,
+            out byte[] passwordHash,
+            out byte[] passwordSalt
+        )
         {
             using (var hmac = new System.Security.Cryptography.HMACSHA512())
             {
                 passwordSalt = hmac.Key;
                 passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             }
-        }
-
-        private bool VerifyPasswordHash(string password, byte[] storedHash, byte[] storedSalt)
-        {
-            if (password == null) throw new ArgumentNullException("password");
-            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Value cannot be empty or whitespace only string.", "password");
-            if (storedHash.Length != 64) throw new ArgumentException("Invalid length of password hash (64 bytes expected).", "passwordHash");
-            if (storedSalt.Length != 128) throw new ArgumentException("Invalid length of password salt (128 bytes expected).", "passwordSalt");
-
-            using (var hmac = new System.Security.Cryptography.HMACSHA512(storedSalt))
-            {
-                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-                for (int i = 0; i < computedHash.Length; i++)
-                {
-                    if (computedHash[i] != storedHash[i]) return false;
-                }
-            }
-
-            return true;
         }
     }
 }
