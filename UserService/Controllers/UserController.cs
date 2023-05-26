@@ -46,8 +46,6 @@ namespace UserService.Controllers
 
             User user = new User
             {
-                FirstName = model.FirstName,
-                LastName = model.LastName,
                 Email = model.Email,
                 PasswordHash = passwordHash,
                 PasswordSalt = passwordSalt
