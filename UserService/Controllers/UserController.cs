@@ -29,40 +29,42 @@ namespace UserService.Controllers
             );
             var database = client.GetDatabase("User");
             _users = database.GetCollection<User>("Users");
-            
+
         }
 
         [HttpPost("create")]
         public async Task<IActionResult> CreateUser([FromBody] RegisterModel model)
-        { try 
         {
-            
-            _logger.LogInformation($"User with email: {model.email} recieved" );
-            if (string.IsNullOrWhiteSpace(model.Password))
-                return BadRequest("Password is required");
-
-            if (await _users.Find<User>(x => x.Email == model.Email).FirstOrDefaultAsync() != null)
-                return BadRequest("Email \"" + model.Email + "\" is already taken");
-
-            byte[] passwordHash,
-                passwordSalt;
-            CreatePasswordHash(model.Password, out passwordHash, out passwordSalt);
-
-            User user = new User
+            try
             {
-                Email = model.Email,
-                PasswordHash = passwordHash,
-                PasswordSalt = passwordSalt
-            };
 
-            await _users.InsertOneAsync(user);
+                _logger.LogInformation($"User with email: {model.Email} recieved");
+                if (string.IsNullOrWhiteSpace(model.Password))
+                    return BadRequest("Password is required");
 
-            return Ok(user);
-        }
-        catch
-        {
-            _logger.LogInformation($"An error occurred while trying to create user with email: {model.email}");
-        }
+                if (await _users.Find<User>(x => x.Email == model.Email).FirstOrDefaultAsync() != null)
+                    return BadRequest("Email \"" + model.Email + "\" is already taken");
+
+                byte[] passwordHash,
+                    passwordSalt;
+                CreatePasswordHash(model.Password, out passwordHash, out passwordSalt);
+
+                User user = new User
+                {
+                    Email = model.Email,
+                    PasswordHash = passwordHash,
+                    PasswordSalt = passwordSalt
+                };
+
+                await _users.InsertOneAsync(user);
+
+                return Ok(user);
+            }
+            catch
+            {
+                _logger.LogInformation($"An error occurred while trying to create user with email: {model.Email}");
+                return BadRequest();
+            }
 
         }
 
