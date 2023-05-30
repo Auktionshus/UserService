@@ -29,11 +29,15 @@ namespace UserService.Controllers
             );
             var database = client.GetDatabase("User");
             _users = database.GetCollection<User>("Users");
+            
         }
 
         [HttpPost("create")]
         public async Task<IActionResult> CreateUser([FromBody] RegisterModel model)
+        { try 
         {
+            
+            _logger.LogInformation($"User with email: {model.email} recieved" );
             if (string.IsNullOrWhiteSpace(model.Password))
                 return BadRequest("Password is required");
 
@@ -55,10 +59,17 @@ namespace UserService.Controllers
 
             return Ok(user);
         }
+        catch
+        {
+            _logger.LogInformation($"An error occurred while trying to create user with email: {model.email}");
+        }
+
+        }
 
         [HttpGet("list")]
         public async Task<IActionResult> ListUsers()
         {
+            _logger.LogInformation("Geting UserList");
             var users = await _users.Find(_ => true).ToListAsync();
             return Ok(users);
         }
