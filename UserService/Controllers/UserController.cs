@@ -107,6 +107,7 @@ namespace UserService.Controllers
             var assembly = typeof(Program).Assembly;
             foreach (var attribute in assembly.GetCustomAttributesData())
             {
+                _logger.LogInformation("Tilføjer " + attribute.AttributeType.Name);
                 properties.Add($"{attribute.AttributeType.Name} - {attribute.ToString()}");
             }
             return properties;
