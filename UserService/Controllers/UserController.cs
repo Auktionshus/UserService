@@ -63,7 +63,7 @@ namespace UserService.Controllers
             return Ok(users);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("user/{id}")]
         public async Task<IActionResult> GetUser(Guid id)
         {
             User user = await _users.Find(u => u.Id == id).FirstOrDefaultAsync();
