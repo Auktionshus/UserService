@@ -100,5 +100,17 @@ namespace UserService.Controllers
                 passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             }
         }
+        [HttpGet("version")]
+        public IEnumerable<string> Get()
+        {
+            var properties = new List<string>();
+            var assembly = typeof(Program).Assembly;
+            foreach (var attribute in assembly.GetCustomAttributesData())
+            {
+                properties.Add($"{attribute.AttributeType.Name} - {attribute.ToString()}");
+            }
+            return properties;
+
+        }
     }
 }
