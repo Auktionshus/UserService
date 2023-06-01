@@ -26,7 +26,7 @@ namespace UserService.Test
         {
             // Arrange
             var controller = new UserController(_loggerMock.Object, _httpClientFactoryMock.Object);
-            var user = new RegisterModel
+            var user = new Register
             {
                 Email = "mateuszkubisiak@example.com",
                 Password = "password",
@@ -40,8 +40,5 @@ namespace UserService.Test
         }
 
         // Add more test methods here for other scenarios
-
     }
 }
-
-
