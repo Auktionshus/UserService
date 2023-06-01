@@ -29,20 +29,21 @@ namespace UserService.Controllers
             );
             var database = client.GetDatabase("User");
             _users = database.GetCollection<User>("Users");
-
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateUser([FromBody] RegisterModel model)
+        public async Task<IActionResult> CreateUser([FromBody] Register model)
         {
             try
             {
-
                 _logger.LogInformation($"User with email: {model.Email} recieved");
                 if (string.IsNullOrWhiteSpace(model.Password))
                     return BadRequest("Password is required");
 
-                if (await _users.Find<User>(x => x.Email == model.Email).FirstOrDefaultAsync() != null)
+                if (
+                    await _users.Find<User>(x => x.Email == model.Email).FirstOrDefaultAsync()
+                    != null
+                )
                     return BadRequest("Email \"" + model.Email + "\" is already taken");
 
                 byte[] passwordHash,
@@ -51,6 +52,8 @@ namespace UserService.Controllers
 
                 User user = new User
                 {
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
                     Email = model.Email,
                     PasswordHash = passwordHash,
                     PasswordSalt = passwordSalt
@@ -62,10 +65,11 @@ namespace UserService.Controllers
             }
             catch
             {
-                _logger.LogInformation($"An error occurred while trying to create user with email: {model.Email}");
+                _logger.LogInformation(
+                    $"An error occurred while trying to create user with email: {model.Email}"
+                );
                 return BadRequest();
             }
-
         }
 
         [HttpGet("list")]
@@ -113,6 +117,7 @@ namespace UserService.Controllers
                 passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             }
         }
+
         [HttpGet("version")]
         public IEnumerable<string> Get()
         {
@@ -124,7 +129,6 @@ namespace UserService.Controllers
                 properties.Add($"{attribute.AttributeType.Name} - {attribute.ToString()}");
             }
             return properties;
-
         }
     }
 }
