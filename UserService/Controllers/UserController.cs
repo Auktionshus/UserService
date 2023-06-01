@@ -18,13 +18,18 @@ namespace UserService.Controllers
     {
         private readonly ILogger<UserController> _logger;
         private readonly string _mongoDbConnectionString;
+        private readonly HttpClient _httpClient;
 
-        public UserController(ILogger<UserController> logger, Environment secrets)
+        public UserController(
+            ILogger<UserController> logger,
+            Environment secrets,
+            IHttpClientFactory clientFactory
+        )
         {
             try
             {
                 _mongoDbConnectionString = secrets.dictionary["ConnectionString"];
-
+                _httpClient = clientFactory.CreateClient();
                 _logger = logger;
                 _logger.LogInformation($"MongoDbConnectionString: {_mongoDbConnectionString}");
             }
