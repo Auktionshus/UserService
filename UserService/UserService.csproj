@@ -40,6 +40,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
 
+    <PackageReference Include="VaultSharp" Version="1.13.0.1" />
+
   </ItemGroup>
 
 </Project>
