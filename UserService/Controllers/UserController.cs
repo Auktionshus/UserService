@@ -31,6 +31,11 @@ namespace UserService.Controllers
             _users = database.GetCollection<User>("Users");
         }
 
+        /// <summary>
+        /// Creates a new user
+        /// </summary>
+        /// <param name="model">Register</param>
+        /// <returns>The created user</returns>
         [HttpPost("create")]
         public async Task<IActionResult> CreateUser([FromBody] Register model)
         {
@@ -72,6 +77,10 @@ namespace UserService.Controllers
             }
         }
 
+        /// <summary>
+        /// Gets a list of all users
+        /// </summary>
+        /// <returns>A list of all users</returns>
         [HttpGet("list")]
         public async Task<IActionResult> ListUsers()
         {
@@ -80,7 +89,12 @@ namespace UserService.Controllers
             return Ok(users);
         }
 
-        [HttpGet("user/{id}")]
+        /// <summary>
+        /// Gets a user by id
+        /// </summary>
+        /// <param name="id">User id</param>
+        /// <returns>The user</returns>
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(Guid id)
         {
             User user = await _users.Find(u => u.Id == id).FirstOrDefaultAsync();
@@ -92,6 +106,11 @@ namespace UserService.Controllers
             return Ok(user);
         }
 
+        /// <summary>
+        /// Gets a user by id
+        /// </summary>
+        /// <param name="id">User id</param>
+        /// <returns>The user</returns>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
@@ -105,6 +124,13 @@ namespace UserService.Controllers
             return Ok($"User with Id {id} has been deleted.");
         }
 
+        /// <summary>
+        /// Creates hash and salt for password
+        /// </summary>
+        /// <param name="password">Password</param>
+        /// <param name="passwordHash">Password hash</param>
+        /// <param name="passwordSalt">Password salt</param>
+        /// <returns></returns>
         private void CreatePasswordHash(
             string password,
             out byte[] passwordHash,
@@ -118,6 +144,10 @@ namespace UserService.Controllers
             }
         }
 
+        /// <summary>
+        /// Gets the version information of the service
+        /// </summary>
+        /// <returns>A list of version information</returns>
         [HttpGet("version")]
         public IEnumerable<string> Get()
         {
