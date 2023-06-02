@@ -17,8 +17,8 @@ namespace UserService.Controllers
     public class UserController : ControllerBase
     {
         private readonly ILogger<UserController> _logger;
-        private readonly IMongoCollection<User> _users;
         private readonly HttpClient _httpClient;
+        private readonly string _mongoDbConnectionString;
 
         private MongoClient dbClient;
 
