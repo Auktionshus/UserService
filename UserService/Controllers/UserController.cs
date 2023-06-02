@@ -17,8 +17,10 @@ namespace UserService.Controllers
     public class UserController : ControllerBase
     {
         private readonly ILogger<UserController> _logger;
-        private readonly string _mongoDbConnectionString;
         private readonly HttpClient _httpClient;
+        private readonly string _mongoDbConnectionString;
+
+        private MongoClient dbClient;
 
         public UserController(
             ILogger<UserController> logger,
@@ -32,6 +34,8 @@ namespace UserService.Controllers
                 _httpClient = clientFactory.CreateClient();
                 _logger = logger;
                 _logger.LogInformation($"MongoDbConnectionString: {_mongoDbConnectionString}");
+
+                dbClient = new MongoClient(_mongoDbConnectionString);
             }
             catch (Exception e)
             {
@@ -39,14 +43,17 @@ namespace UserService.Controllers
             }
         }
 
+        /// <summary>
+        /// Creates a new user
+        /// </summary>
+        /// <param name="model">Register</param>
+        /// <returns>The created user</returns>
         [HttpPost("create")]
         public async Task<IActionResult> CreateUser([FromBody] Register model)
         {
             try
             {
-                MongoClient dbClient = new MongoClient(_mongoDbConnectionString);
                 var collection = dbClient.GetDatabase("User").GetCollection<User>("Users");
-
                 _logger.LogInformation($"User with email: {model.Email} recieved");
                 if (string.IsNullOrWhiteSpace(model.Password))
                     return BadRequest("Password is required");
@@ -83,20 +90,27 @@ namespace UserService.Controllers
             }
         }
 
+        /// <summary>
+        /// Gets a list of all users
+        /// </summary>
+        /// <returns>A list of all users</returns>
         [HttpGet("list")]
         public async Task<IActionResult> ListUsers()
         {
-            MongoClient dbClient = new MongoClient(_mongoDbConnectionString);
             var collection = dbClient.GetDatabase("User").GetCollection<User>("Users");
             _logger.LogInformation("Geting UserList");
             var users = await collection.Find(_ => true).ToListAsync();
             return Ok(users);
         }
 
-        [HttpGet("user/{id}")]
+        /// <summary>
+        /// Gets a user by id
+        /// </summary>
+        /// <param name="id">User id</param>
+        /// <returns>The user</returns>
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(Guid id)
         {
-            MongoClient dbClient = new MongoClient(_mongoDbConnectionString);
             var collection = dbClient.GetDatabase("User").GetCollection<User>("Users");
             User user = await collection.Find(u => u.Id == id).FirstOrDefaultAsync();
 
@@ -107,10 +121,14 @@ namespace UserService.Controllers
             return Ok(user);
         }
 
+        /// <summary>
+        /// Gets a user by id
+        /// </summary>
+        /// <param name="id">User id</param>
+        /// <returns>The user</returns>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
-            MongoClient dbClient = new MongoClient(_mongoDbConnectionString);
             var collection = dbClient.GetDatabase("User").GetCollection<User>("Users");
             var result = await collection.DeleteOneAsync(u => u.Id == id);
 
@@ -122,6 +140,13 @@ namespace UserService.Controllers
             return Ok($"User with Id {id} has been deleted.");
         }
 
+        /// <summary>
+        /// Creates hash and salt for password
+        /// </summary>
+        /// <param name="password">Password</param>
+        /// <param name="passwordHash">Password hash</param>
+        /// <param name="passwordSalt">Password salt</param>
+        /// <returns></returns>
         private void CreatePasswordHash(
             string password,
             out byte[] passwordHash,
@@ -135,6 +160,10 @@ namespace UserService.Controllers
             }
         }
 
+        /// <summary>
+        /// Gets the version information of the service
+        /// </summary>
+        /// <returns>A list of version information</returns>
         [HttpGet("version")]
         public IEnumerable<string> Get()
         {
