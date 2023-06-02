@@ -13,6 +13,7 @@ namespace UserService.Test
     {
         private Mock<ILogger<UserController>> _loggerMock;
         private Mock<IHttpClientFactory> _httpClientFactoryMock;
+        private Mock<Environment> _environmentMock;
 
         [SetUp]
         public void Setup()
@@ -25,7 +26,11 @@ namespace UserService.Test
         public async Task CreateUser_ValidModel_ReturnsOkResult()
         {
             // Arrange
-            var controller = new UserController(_loggerMock.Object, _httpClientFactoryMock.Object);
+            var controller = new UserController(
+                _loggerMock.Object,
+                _environmentMock.Object,
+                _httpClientFactoryMock.Object
+            );
             var user = new Register
             {
                 Email = "mateuszkubisiak@example.com",

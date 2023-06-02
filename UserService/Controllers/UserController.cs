@@ -20,15 +20,27 @@ namespace UserService.Controllers
         private readonly IMongoCollection<User> _users;
         private readonly HttpClient _httpClient;
 
-        public UserController(ILogger<UserController> logger, IHttpClientFactory clientFactory)
+        private MongoClient dbClient;
+
+        public UserController(
+            ILogger<UserController> logger,
+            Environment secrets,
+            IHttpClientFactory clientFactory
+        )
         {
-            _logger = logger;
-            _httpClient = clientFactory.CreateClient();
-            var client = new MongoClient(
-                "mongodb+srv://GroenOlsen:BhvQmiihJWiurl2V@auktionshusgo.yzctdhc.mongodb.net/?retryWrites=true&w=majority"
-            );
-            var database = client.GetDatabase("User");
-            _users = database.GetCollection<User>("Users");
+            try
+            {
+                _mongoDbConnectionString = secrets.dictionary["ConnectionString"];
+                _httpClient = clientFactory.CreateClient();
+                _logger = logger;
+                _logger.LogInformation($"MongoDbConnectionString: {_mongoDbConnectionString}");
+
+                dbClient = new MongoClient(_mongoDbConnectionString);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Error getting environment variables{e.Message}");
+            }
         }
 
         /// <summary>
@@ -41,12 +53,13 @@ namespace UserService.Controllers
         {
             try
             {
+                var collection = dbClient.GetDatabase("User").GetCollection<User>("Users");
                 _logger.LogInformation($"User with email: {model.Email} recieved");
                 if (string.IsNullOrWhiteSpace(model.Password))
                     return BadRequest("Password is required");
 
                 if (
-                    await _users.Find<User>(x => x.Email == model.Email).FirstOrDefaultAsync()
+                    await collection.Find<User>(x => x.Email == model.Email).FirstOrDefaultAsync()
                     != null
                 )
                     return BadRequest("Email \"" + model.Email + "\" is already taken");
@@ -64,7 +77,7 @@ namespace UserService.Controllers
                     PasswordSalt = passwordSalt
                 };
 
-                await _users.InsertOneAsync(user);
+                await collection.InsertOneAsync(user);
 
                 return Ok(user);
             }
@@ -84,8 +97,9 @@ namespace UserService.Controllers
         [HttpGet("list")]
         public async Task<IActionResult> ListUsers()
         {
+            var collection = dbClient.GetDatabase("User").GetCollection<User>("Users");
             _logger.LogInformation("Geting UserList");
-            var users = await _users.Find(_ => true).ToListAsync();
+            var users = await collection.Find(_ => true).ToListAsync();
             return Ok(users);
         }
 
@@ -97,7 +111,8 @@ namespace UserService.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(Guid id)
         {
-            User user = await _users.Find(u => u.Id == id).FirstOrDefaultAsync();
+            var collection = dbClient.GetDatabase("User").GetCollection<User>("Users");
+            User user = await collection.Find(u => u.Id == id).FirstOrDefaultAsync();
 
             if (user == null)
             {
@@ -114,7 +129,8 @@ namespace UserService.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
-            var result = await _users.DeleteOneAsync(u => u.Id == id);
+            var collection = dbClient.GetDatabase("User").GetCollection<User>("Users");
+            var result = await collection.DeleteOneAsync(u => u.Id == id);
 
             if (result.DeletedCount == 0)
             {
